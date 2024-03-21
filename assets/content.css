@@ -1,0 +1,7 @@
+.input-block {
+    box-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+    text-align: center;
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+}
