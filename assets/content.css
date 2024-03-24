@@ -1,7 +1,26 @@
-.input-block {
+.input-block,
+.output-block {
     box-shadow: 4px 4px 8px rgba(0,0,0,0.3);
     text-align: center;
     width: 100%;
     padding: 10px;
     border-radius: 5px;
+}
+
+p {
+    margin-bottom: 0;
+}
+
+td {
+    padding: 5px;
+}
+
+@media (max-width: 1200px) {
+    .block-grid {
+        display: block;
+    }
+    .block-col {
+        max-width: 100%;
+        display: block;
+    }
 }

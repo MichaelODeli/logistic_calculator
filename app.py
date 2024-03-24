@@ -6,11 +6,12 @@ import dash_bootstrap_components as dbc
 from dash_extensions import Purify
 
 operations_counter_global = 0
+allow_save_data_in_fields = False
 time_dropdown_items = [
-    # {"label": "сек", "value": "sec"},
-    # {"label": "мин", "value": "min"},
-    # {"label": "час", "value": "hour"},
-    {"label": "дн", "value": "days"},
+    {"label": "мес.", "value": "month"},
+    {"label": "нед.", "value": "week"},
+    {"label": "дн.", "value": "days"},
+    {"label": "час", "value": "hour"},
 ]
 
 # css styles
@@ -48,7 +49,7 @@ header_buttons = dbc.ButtonGroup(
             outline=True,
             color="danger",
             id="fields-reset",
-            disabled=True,
+            # disabled=True,
             # href='/'
         ),
     ]
@@ -98,7 +99,40 @@ def get_header_with_help_icon(header_text, hover_text):
     )
 
 
-temp_input = dmc.TextInput(style={"width": 45}, value="0.5")
+def get_input_fields_in_table():
+    table_row_1 = html.Tr(
+        [
+            html.Td(dmc.Text("Количество продуктов")),
+            html.Td(
+                dbc.Input(
+                    placeholder="Введите число",
+                    id="productions_count",
+                    type="number",
+                    persistence=allow_save_data_in_fields,
+                )
+            ),
+        ]
+    )
+
+    table_row_2 = html.Tr(
+        [
+            html.Td(dmc.Text("Количество операций")),
+            html.Td(
+                dbc.Input(
+                    placeholder="Введите число",
+                    id="operations_count",
+                    type="number",
+                    persistence=allow_save_data_in_fields,
+                ),
+            ),
+            html.Td(
+                dbc.Button("Далее", id="operations_save_button"),
+            ),
+        ]
+    )
+
+    return html.Table(html.Tbody([table_row_1] + [table_row_2]))
+
 
 line_1 = dmc.Stack(
     [
@@ -109,33 +143,10 @@ line_1 = dmc.Stack(
                     "Предварительные параметры",
                     "Поддерживается ввод только целых чисел",
                 ),
+                dcc.Store(id="productions_counter"),
+                dcc.Store(id="operations_counter"),
                 dmc.Space(h=10),
-                dmc.Group(
-                    [
-                        dcc.Store(id="productions_counter"),
-                        dmc.Text("Количество продуктов"),
-                        dbc.Input(
-                            placeholder="Введите число",
-                            id="productions_count",
-                            style={"width": "30%"},
-                            type="number",
-                        ),
-                    ]
-                ),
-                dmc.Space(h=10),
-                dmc.Group(
-                    [
-                        dcc.Store(id="operations_counter"),
-                        dmc.Text("Количество операций"),
-                        dbc.Input(
-                            placeholder="Введите число",
-                            id="operations_count",
-                            style={"width": "30%"},
-                            type="number",
-                        ),
-                        dbc.Button("Сохранить", id="operations_save_button"),
-                    ]
-                ),
+                get_input_fields_in_table(),
             ],
             className="input-block",
         ),
@@ -150,7 +161,7 @@ line_1 = dmc.Stack(
                     children=[
                         html.Center(
                             Purify(
-                                'В окне выше введите необходимое количество операций<br>и нажмите кнопку "Сохранить"'
+                                'В окне выше введите необходимое количество операций<br>и нажмите кнопку "Далее"'
                             )
                         )
                     ],
@@ -168,9 +179,7 @@ line_2 = dmc.Stack(
     [
         html.H3("Весовые коэффициенты"),
         html.Div(
-            [
-                dmc.Group(["y = ", temp_input, "x1 +", temp_input, "x2"], spacing="xs"),
-            ],
+            [],
             className="input-block",
         ),
     ],
@@ -212,11 +221,12 @@ main_container = html.Div(
         dmc.Space(h=65),
         dmc.Grid(
             children=[
-                dmc.Col(html.Div(line_1), span=4),
-                dmc.Col(html.Div(line_2), span=3),
-                dmc.Col(html.Div(line_3), span=5),
+                dmc.Col(html.Div(line_1), span=4, className="block-col"),
+                dmc.Col(html.Div(line_2), span=3, className="block-col"),
+                dmc.Col(html.Div(line_3), span=5, className="block-col"),
             ],
             gutter="xl",
+            className="block-grid",
         ),
         dmc.Modal(
             title=html.H4("Интегрированная логистическая система предприятия"),
@@ -269,6 +279,22 @@ def drawer_show(_):
     return True
 
 
+# drawer with help
+@callback(
+    [
+        Output("operations_count", "value"),
+        Output("productions_count", "value"),
+        Output({"type": "operation_time_input", "index": ALL}, "value"),
+        Output({"type": "operation_time_timetype", "index": ALL}, "value"),
+    ],
+    Input("fields-reset", "n_clicks"),
+    State({"type": "operation_time_input", "index": ALL}, "value"),
+    prevent_initial_call=True,
+)
+def clear_all_fields(n_clicks, counter):
+    return [None, None, [None]*len(counter), ['days']*len(counter)]
+
+
 @callback(
     [
         Output("times_block", "children"),
@@ -317,30 +343,50 @@ def make_inputs(
         )
     sk = "{"
     ks = "}"
+
     inputs_list = [
-        dmc.Group(
+        html.Tr(
             [
-                dcc.Markdown(f"Время операции $$t_{sk}{i+1}{ks}$$", mathjax=True),
-                # dbc.Input(placeholder=f"t{str(i+1)}", id=f"operation_time_{str(i+1)}", style={"width": "30%"},),
-                dbc.Input(
-                    placeholder=f"t({str(i+1)})",
-                    id={"type": "operation_time_input", "index": i + 1},
-                    style={"width": "30%"},
-                    value=operation_time_input[i],
-                    type="number",
+                html.Td(
+                    [
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText(
+                                    dcc.Markdown(
+                                        f"Время операции $$t_{sk}{i+1}{ks}$$",
+                                        mathjax=True,
+                                    )
+                                ),
+                                dbc.Input(
+                                    placeholder=f"t({str(i+1)})",
+                                    id={"type": "operation_time_input", "index": i + 1},
+                                    value=operation_time_input[i],
+                                    type="number",
+                                    persistence=allow_save_data_in_fields,
+                                ),
+                            ]
+                        )
+                    ]
                 ),
-                dbc.Select(
-                    id={"type": "operation_time_timetype", "index": i + 1},
-                    options=time_dropdown_items,
-                    style={"width": "20%"},
-                    value=operation_time_timetype[i],
+                html.Td(
+                    dbc.Select(
+                        id={"type": "operation_time_timetype", "index": i + 1},
+                        options=time_dropdown_items,
+                        value=operation_time_timetype[i],
+                    )
                 ),
             ]
         )
         for i in range(int(operations_count))
-    ] + [dbc.Button("Рассчитать", id="make_calc")]
+    ]
+    send_button = dbc.Button("Рассчитать", id="make_calc")
 
-    return dmc.Stack(inputs_list), str(operations_count), str(productions_count), None
+    return (
+        dmc.Stack([html.Table(inputs_list), send_button]),
+        str(operations_count),
+        str(productions_count),
+        None,
+    )
 
 
 @callback(
@@ -380,15 +426,18 @@ def calculate(*args):
         for process_time, process_timeprefix, i in zip(
             args[1], args[2], range(len(args[1]))
         ):
-            # if process_timeprefix == "sec":
-            #     process_time_conv = float(process_time)
-            # elif process_timeprefix == "min":
-            #     process_time_conv = float(process_time) * 60
-            # elif process_timeprefix == "hour":
-            #     process_time_conv = float(process_time) * 60 * 60
-            # elif process_timeprefix == "days":
-            #     process_time_conv = float(process_time) * 60 * 60 * 24
-            process_time_conv = float(process_time)
+            if process_timeprefix == "days":
+                process_time_conv = float(process_time)
+                process_timeprefix = "дн."
+            elif process_timeprefix == "week":
+                process_time_conv = float(process_time) * 7
+                process_timeprefix = "нед."
+            elif process_timeprefix == "month":
+                process_time_conv = float(process_time) * 30
+                process_timeprefix = "мес."
+            elif process_timeprefix == "hour":
+                process_time_conv = round(float(process_time) / 24, 2)
+                process_timeprefix = "час."
             source_data.append(
                 dcc.Markdown(
                     f"$$t_{i+1} = {process_time}~({process_timeprefix}) = {str(process_time_conv)}~(дн.)$$",
@@ -396,7 +445,7 @@ def calculate(*args):
                 )
             )
             proc_time.append(float(process_time_conv))
-            proc_time_str.append(str(int(process_time_conv)))
+            proc_time_str.append(str(process_time_conv))
 
         posl_value = sum(proc_time) * productions_count
         posl_data = [
@@ -407,25 +456,29 @@ def calculate(*args):
             ),
         ]
 
-        paral_value = sum(proc_time) + (
-            (productions_count - 1) * max(proc_time)
-        )
+        paral_value = sum(proc_time) + ((productions_count - 1) * max(proc_time))
         paral_data = [
             dcc.Markdown("**Параллельный метод**"),
             dcc.Markdown(
-                [f'$$t_{"{парал}"} = ({" + ".join(proc_time_str)})+$$\n',
-                 f'$$+({str(productions_count)}-1)*{str(max(proc_time_str))} = {str(paral_value)}~(дн.)$$'],
+                [
+                    f'$t_{"{парал}"} = ({" + ".join(proc_time_str)})+$\n',
+                    f"$+({str(productions_count)}-1)*{str(max(proc_time_str))} = {str(paral_value)}~(дн.)$",
+                ],
                 mathjax=True,
             ),
         ]
+
+        current_time = [dmc.Text('Time', style={'min-width': '100%', 'text-align': 'right'})]
 
         results = dmc.Stack(
             source_data
             + [dmc.Space(h=10)]
             + posl_data
             + [dmc.Space(h=10)]
-            + paral_data,
+            + paral_data
+            + current_time,
             spacing=0,
+            className='output-block'
         )
         return results, None, None
 
