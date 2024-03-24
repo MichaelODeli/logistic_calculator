@@ -468,17 +468,13 @@ def calculate(*args):
             ),
         ]
 
-        current_time = [dmc.Text('Time', style={'min-width': '100%', 'text-align': 'right'})]
-
         results = dmc.Stack(
             source_data
             + [dmc.Space(h=10)]
             + posl_data
             + [dmc.Space(h=10)]
-            + paral_data
-            + current_time,
+            + paral_data,
             spacing=0,
-            className='output-block'
         )
         return results, None, None
 
