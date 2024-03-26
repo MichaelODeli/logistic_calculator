@@ -4,6 +4,7 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 import dash_bootstrap_components as dbc
 from dash_extensions import Purify
+from datetime import datetime, date
 
 operations_counter_global = 0
 allow_save_data_in_fields = False
@@ -77,12 +78,7 @@ def get_hover(item, content, width=300, text_size="sm"):
         shadow="md",
         children=[
             dmc.HoverCardTarget(item),
-            dmc.HoverCardDropdown(
-                dmc.Text(
-                    content,
-                    size=text_size,
-                )
-            ),
+            dmc.HoverCardDropdown(dcc.Markdown(content)),
         ],
     )
 
@@ -102,7 +98,7 @@ def get_header_with_help_icon(header_text, hover_text):
 def get_input_fields_in_table():
     table_row_1 = html.Tr(
         [
-            html.Td(dmc.Text("Количество продуктов")),
+            html.Td(dmc.Text("Количество товаров")),
             html.Td(
                 dbc.Input(
                     placeholder="Введите число",
@@ -116,7 +112,7 @@ def get_input_fields_in_table():
 
     table_row_2 = html.Tr(
         [
-            html.Td(dmc.Text("Количество операций")),
+            html.Td(dmc.Text("Количество этапов")),
             html.Td(
                 dbc.Input(
                     placeholder="Введите число",
@@ -154,7 +150,7 @@ line_1 = dmc.Stack(
             [
                 get_header_with_help_icon(
                     "Настройка времени операций",
-                    "А тут можно сделать подсказки для каждого раздела с исходными данными",
+                    "",
                 ),
                 dmc.Space(h=10),
                 html.Div(
@@ -177,9 +173,19 @@ line_1 = dmc.Stack(
 
 line_2 = dmc.Stack(
     [
-        html.H3("Весовые коэффициенты"),
+        html.H3("Коэффициенты"),
         html.Div(
-            [],
+            dmc.Stack(
+                [
+                    # dbc.InputGroup(
+                    #     [
+                    #         dbc.InputGroupText("Время транспортировки товаров между этапами"),
+                    #         dbc.Input(placeholder="Введите число"),
+                    #         dbc.InputGroupText("дн."),
+                    #     ],
+                    # ),
+                ]
+            ),
             className="input-block",
         ),
     ],
@@ -292,7 +298,7 @@ def drawer_show(_):
     prevent_initial_call=True,
 )
 def clear_all_fields(n_clicks, counter):
-    return [None, None, [None]*len(counter), ['days']*len(counter)]
+    return [None, None, [None] * len(counter), ["days"] * len(counter)]
 
 
 @callback(
@@ -344,32 +350,46 @@ def make_inputs(
     sk = "{"
     ks = "}"
 
+    tbl_header = [
+        html.Thead(
+            html.Tr(
+                [
+                    html.Th("№"),
+                    html.Th("Одновременных операций"),
+                    html.Th("Время 1 операции"),
+                    html.Th("Тип времени"),
+                ]
+            )
+        )
+    ]
     inputs_list = [
         html.Tr(
             [
+                html.Td(str(i + 1)),
                 html.Td(
-                    [
-                        dbc.InputGroup(
-                            [
-                                dbc.InputGroupText(
-                                    dcc.Markdown(
-                                        f"Время операции $$t_{sk}{i+1}{ks}$$",
-                                        mathjax=True,
-                                    )
-                                ),
-                                dbc.Input(
-                                    placeholder=f"t({str(i+1)})",
-                                    id={"type": "operation_time_input", "index": i + 1},
-                                    value=operation_time_input[i],
-                                    type="number",
-                                    persistence=allow_save_data_in_fields,
-                                ),
-                            ]
-                        )
-                    ]
+                    dbc.Input(
+                        placeholder=f"Одновременных операций",
+                        id={"type": "operation_time_lines", "index": i + 1},
+                        value="1",
+                        type="number",
+                        persistence=allow_save_data_in_fields,
+                        style={"text-align": "center"},
+                        disabled=True,
+                    ),
+                ),
+                html.Td(
+                    dbc.Input(
+                        placeholder=f"t({str(i+1)})",
+                        id={"type": "operation_time_input", "index": i + 1},
+                        value=operation_time_input[i],
+                        type="number",
+                        persistence=allow_save_data_in_fields,
+                        style={"text-align": "center"},
+                    ),
                 ),
                 html.Td(
                     dbc.Select(
+                        placeholder="Тип введенного времени",
                         id={"type": "operation_time_timetype", "index": i + 1},
                         options=time_dropdown_items,
                         value=operation_time_timetype[i],
@@ -382,7 +402,7 @@ def make_inputs(
     send_button = dbc.Button("Рассчитать", id="make_calc")
 
     return (
-        dmc.Stack([html.Table(inputs_list), send_button]),
+        dmc.Stack([html.Table(tbl_header + inputs_list), send_button]),
         str(operations_count),
         str(productions_count),
         None,
@@ -399,11 +419,20 @@ def make_inputs(
     [
         State({"type": "operation_time_input", "index": ALL}, "value"),
         State({"type": "operation_time_timetype", "index": ALL}, "value"),
+        State({"type": "operation_time_lines", "index": ALL}, "value"),
         State("productions_counter", "data"),
+        State("test_output", "children"),
     ],
     prevent_initial_call=True,
 )
-def calculate(*args):
+def calculate(
+    n_clicks,
+    operation_time_input,
+    operation_time_timetype,
+    operation_time_lines,
+    productions_counter,
+    children,
+):
     fault_notif = dmc.Notification(
         title="Ошибка расчета",
         id="simple-notify",
@@ -413,18 +442,23 @@ def calculate(*args):
         color="red",
     )
 
-    if args[0] == None:
+    if n_clicks == None:
         return None, None, None
-    elif None in args[1]:
+    elif None in operation_time_input or None in operation_time_lines:
         return None, None, fault_notif
     else:
-        productions_count = float(args[3])
-
-        source_data = [dcc.Markdown("**Исходные данные**")]
+        productions_count = float(productions_counter)
+        source_data = [
+            dcc.Markdown("##### Длительность основного технологического цикла"),
+            dcc.Markdown("**Исходные данные**"),
+        ]
         proc_time = []
         proc_time_str = []
-        for process_time, process_timeprefix, i in zip(
-            args[1], args[2], range(len(args[1]))
+        for process_time, process_timeprefix, process_lines, i in zip(
+            operation_time_input,
+            operation_time_timetype,
+            operation_time_lines,
+            range(len(operation_time_input)),
         ):
             if process_timeprefix == "days":
                 process_time_conv = float(process_time)
@@ -440,7 +474,11 @@ def calculate(*args):
                 process_timeprefix = "час."
             source_data.append(
                 dcc.Markdown(
-                    f"$$t_{i+1} = {process_time}~({process_timeprefix}) = {str(process_time_conv)}~(дн.)$$",
+                    (
+                        f"$$t_{i+1} = {process_time}~({process_timeprefix}) = {str(process_time_conv)}~(дн.)$$"
+                        if process_timeprefix != "дн."
+                        else f"$$t_{i+1} = {str(process_time_conv)}~(дн.)$$"
+                    ),
                     mathjax=True,
                 )
             )
@@ -468,15 +506,29 @@ def calculate(*args):
             ),
         ]
 
+        time_divider = [
+            dmc.Divider(
+                variant="solid",
+                label=datetime.now().strftime("%d/%b/%Y %H:%M:%S"),
+                labelPosition="center",
+            )
+        ]
+
         results = dmc.Stack(
-            source_data
+            time_divider
+            + source_data
             + [dmc.Space(h=10)]
             + posl_data
             + [dmc.Space(h=10)]
             + paral_data,
             spacing=0,
         )
-        return results, None, None
+
+        if children == None:
+            children = []
+        children.append(results)
+        return children, None, None
+        # return results, None, None
 
 
 if __name__ == "__main__":
