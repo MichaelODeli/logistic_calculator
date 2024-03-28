@@ -64,7 +64,7 @@ def get_icon(icon):
     `icon`: icon name
     """
     return dmc.ThemeIcon(
-        DashIconify(icon=icon, width=18),
+        DashIconify(icon=icon, width=18, color="var(--bs-primary)"),
         size=20,
         radius=20,
         variant="subtle",
@@ -157,7 +157,7 @@ line_1 = dmc.Stack(
                     children=[
                         html.Center(
                             Purify(
-                                'В окне выше введите необходимое количество операций<br>и нажмите кнопку "Далее"'
+                                'В блоке выше введите необходимое количество операций<br>и нажмите кнопку "Далее"'
                             )
                         )
                     ],
@@ -173,19 +173,23 @@ line_1 = dmc.Stack(
 
 line_2 = dmc.Stack(
     [
-        html.H3("Коэффициенты"),
+        html.H3("ㅤ"),
         html.Div(
-            dmc.Stack(
-                [
-                    # dbc.InputGroup(
-                    #     [
-                    #         dbc.InputGroupText("Время транспортировки товаров между этапами"),
-                    #         dbc.Input(placeholder="Введите число"),
-                    #         dbc.InputGroupText("дн."),
-                    #     ],
-                    # ),
-                ]
-            ),
+            [
+                get_header_with_help_icon(
+                    "Настройка времени транспортировки",
+                    "",
+                ),
+                dmc.Space(h=10),
+                html.Div(
+                    html.Center(
+                        Purify(
+                            'В блоке слева введите необходимое количество операций<br>и нажмите кнопку "Далее"'
+                        )
+                    ),
+                    id="div-transport-time",
+                ),
+            ],
             className="input-block",
         ),
     ],
@@ -304,6 +308,7 @@ def clear_all_fields(n_clicks, counter):
 @callback(
     [
         Output("times_block", "children"),
+        Output("div-transport-time", "children"),
         Output("operations_counter", "data"),
         Output("productions_counter", "data"),
         Output("notifications-container", "children"),
@@ -333,11 +338,61 @@ def make_inputs(
         color="red",
     )
     if operations_count == None or productions_count == None:
-        return no_update, no_update, no_update, fault_notif
+        return no_update, no_update, no_update, no_update, fault_notif
 
     global operations_counter_global
     global time_dropdown_items
     operations_counter_global = operations_count
+
+    # transport time block
+    tr_block = dmc.Timeline(
+        bulletSize=15,
+        lineWidth=2,
+        children=[
+            dmc.TimelineItem(
+                title=f"Операция {cnt+1}",
+                children=dmc.Stack(
+                    [
+                        dbc.InputGroup(
+                            [
+                                dbc.Input(
+                                    placeholder=f"Время транспортировки до пункта {cnt+1}",
+                                    id={"type": "transport_time", "index": cnt + 1},
+                                    type="number",
+                                ),
+                                dbc.InputGroupText("дн."),
+                            ]
+                        ),
+                        dmc.Group(
+                            [
+                                "Значимость",
+                                dmc.Slider(
+                                    min=0,
+                                    max=100,
+                                    value=100,
+                                    step=5,
+                                    style={"width": "70%", "margin-bottom": "15px"},
+                                    marks=[
+                                        {"value": 20, "label": "20%"},
+                                        {"value": 50, "label": "50%"},
+                                        {"value": 80, "label": "80%"},
+                                    ],
+                                    id={
+                                        "type": "transport_time_important",
+                                        "index": cnt + 1,
+                                    },
+                                    color="gray.7",
+                                ),
+                            ]
+                        ),
+                    ]
+                ),
+            )
+            for cnt in range(int(operations_count))
+        ],
+    )
+
+    # operations time block
 
     if operations_count < len(operation_time_input):
         operation_time_input = operation_time_input[:operations_count]
@@ -403,6 +458,7 @@ def make_inputs(
 
     return (
         dmc.Stack([html.Table(tbl_header + inputs_list), send_button]),
+        tr_block,
         str(operations_count),
         str(productions_count),
         None,
