@@ -15,6 +15,13 @@ time_dropdown_items = [
     {"label": "час", "value": "hour"},
 ]
 
+spravka = """ ##### Описание программы:
+`бла-бла-бла`
+
+---
+
+##### Использованная литература:
+- Богданова, Е. С. Концепция инфокоммуникационной сети как основа разработки интегрированных логистических систем предприятия в условиях цифровой экономики / Е. С. Богданова, Д. Г. Неволин, З. Б. Хмельницкая. – Екатеринбург : Уральский государственный университет путей сообщения, 2022. – 140 с. – ISBN 978-5-94614-504-6. – EDN BOMBRR."""
 # css styles
 icons_link = (
     "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css"
@@ -259,7 +266,9 @@ main_container = html.Div(
             id="drawer-help",
             padding="md",
             zIndex=10000,
-            children=["А здесь можно прикрепить какую-нибудь справку по расчетам"],
+            children=[
+                dcc.Markdown(spravka)
+            ],
         ),
     ],
     style={"padding": "10px"},
@@ -346,17 +355,20 @@ def make_inputs(
 
     # transport time block
     tr_block = dmc.Timeline(
-        bulletSize=15,
+        active=operations_count,
+        bulletSize=20,
         lineWidth=2,
         children=[
             dmc.TimelineItem(
                 title=f"Операция {cnt+1}",
+                color="gray.7",
                 children=dmc.Stack(
                     [
                         dbc.InputGroup(
                             [
+                                dbc.InputGroupText(f"Время транспортировки до пункта {cnt+1}", style={'font-size': '14px'}),
                                 dbc.Input(
-                                    placeholder=f"Время транспортировки до пункта {cnt+1}",
+                                    # placeholder=f"Время транспортировки до пункта {cnt+1}",
                                     id={"type": "transport_time", "index": cnt + 1},
                                     type="number",
                                 ),
@@ -476,6 +488,8 @@ def make_inputs(
         State({"type": "operation_time_input", "index": ALL}, "value"),
         State({"type": "operation_time_timetype", "index": ALL}, "value"),
         State({"type": "operation_time_lines", "index": ALL}, "value"),
+        State({"type": "transport_time", "index": ALL}, "value"),
+        State({"type": "transport_time_important", "index": ALL}, "value"),
         State("productions_counter", "data"),
         State("test_output", "children"),
     ],
@@ -486,6 +500,8 @@ def calculate(
     operation_time_input,
     operation_time_timetype,
     operation_time_lines,
+    transport_time,
+    transport_time_important,
     productions_counter,
     children,
 ):
@@ -500,6 +516,7 @@ def calculate(
 
     if n_clicks == None:
         return None, None, None
+    # elif None in operation_time_input or None in operation_time_lines or None in transport_time:
     elif None in operation_time_input or None in operation_time_lines:
         return None, None, fault_notif
     else:
