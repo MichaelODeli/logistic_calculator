@@ -3,7 +3,7 @@ from dash import html, Output, Input, State, callback, dcc, ALL, no_update
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 import dash_bootstrap_components as dbc
-from dash_extensions import Purify, Mermaid
+from dash_extensions import Purify
 from datetime import datetime, date
 
 operations_counter_global = 0
@@ -208,8 +208,16 @@ line_3 = dmc.Stack(
     [
         html.H3("Результаты расчетов"),
         html.Div(
-            id="test_output",
+            id="calc_output",
             className="input-block",
+            children=[
+                html.Center(
+                        Purify(
+                            'В блоках слева введите требуемые данные<br>и нажмите кнопку "Рассчитать"'
+                        ),
+                        className='cube'
+                    ),
+            ]
         ),
     ],
     align="center",
@@ -371,9 +379,9 @@ def make_inputs(
                                     style={'font-size': '14px'}
                                 ),
                                 dbc.Input(
-                                    # placeholder=f"Время транспортировки до пункта {cnt+1}",
                                     id={"type": "transport_time", "index": cnt + 1},
                                     type="number",
+                                    disabled=True
                                 ),
                                 dbc.InputGroupText("дн."),
                             ]
@@ -397,6 +405,7 @@ def make_inputs(
                                         "index": cnt + 1,
                                     },
                                     color="gray.7",
+                                    disabled=True
                                 ),
                             ]
                         ),
@@ -469,20 +478,20 @@ def make_inputs(
         )
         for i in range(int(operations_count))
     ]
-    send_button = dbc.Button("Рассчитать", id="make_calc")
+    send_button = dbc.Button("Рассчитать", id="make_calc", class_name='btn_calc')
 
     return (
         dmc.Stack([html.Table(tbl_header + inputs_list), send_button]),
         tr_block,
         str(operations_count),
         str(productions_count),
-        None,
+        no_update,
     )
 
 
 @callback(
     [
-        Output("test_output", "children"),
+        Output("calc_output", "children"),
         Output("make_calc", "n_clicks"),
         Output("notifications-container-2", "children"),
     ],
@@ -494,7 +503,7 @@ def make_inputs(
         State({"type": "transport_time", "index": ALL}, "value"),
         State({"type": "transport_time_important", "index": ALL}, "value"),
         State("productions_counter", "data"),
-        State("test_output", "children"),
+        State("calc_output", "children"),
     ],
     prevent_initial_call=True,
 )
@@ -518,7 +527,7 @@ def calculate(
     )
 
     if n_clicks is None:
-        return None, None, None
+        return no_update, None, None
     # elif None in operation_time_input or None in operation_time_lines or None in transport_time:
     elif None in operation_time_input or None in operation_time_lines:
         return None, None, fault_notif
