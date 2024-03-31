@@ -3,7 +3,7 @@ from dash import html, Output, Input, State, callback, dcc, ALL, no_update
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 import dash_bootstrap_components as dbc
-from dash_extensions import Purify
+from dash_extensions import Purify, Mermaid
 from datetime import datetime, date
 
 operations_counter_global = 0
@@ -78,7 +78,7 @@ def get_icon(icon):
     )
 
 
-def get_hover(item, content, width=300, text_size="sm"):
+def get_hover(item, content, width=300):
     return dmc.HoverCard(
         withArrow=True,
         width=width,
@@ -366,7 +366,10 @@ def make_inputs(
                     [
                         dbc.InputGroup(
                             [
-                                dbc.InputGroupText(f"Время транспортировки до пункта {cnt+1}", style={'font-size': '14px'}),
+                                dbc.InputGroupText(
+                                    f"Время транспортировки до пункта {cnt+1}",
+                                    style={'font-size': '14px'}
+                                ),
                                 dbc.Input(
                                     # placeholder=f"Время транспортировки до пункта {cnt+1}",
                                     id={"type": "transport_time", "index": cnt + 1},
@@ -514,7 +517,7 @@ def calculate(
         color="red",
     )
 
-    if n_clicks == None:
+    if n_clicks is None:
         return None, None, None
     # elif None in operation_time_input or None in operation_time_lines or None in transport_time:
     elif None in operation_time_input or None in operation_time_lines:
@@ -545,6 +548,8 @@ def calculate(
             elif process_timeprefix == "hour":
                 process_time_conv = round(float(process_time) / 24, 2)
                 process_timeprefix = "час."
+            else:
+                process_time_conv = None
             source_data.append(
                 dcc.Markdown(
                     (
@@ -597,7 +602,7 @@ def calculate(
             spacing=0,
         )
 
-        if children == None:
+        if children is None:
             children = []
         children.append(results)
         return children, None, None
