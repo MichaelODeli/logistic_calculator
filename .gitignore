@@ -1,3 +1,5 @@
 formulas input/
 *.py_old
 *.ipynb
+build/
+dist/

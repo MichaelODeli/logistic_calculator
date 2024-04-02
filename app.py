@@ -381,7 +381,7 @@ def make_inputs(
                                 dbc.Input(
                                     id={"type": "transport_time", "index": cnt + 1},
                                     type="number",
-                                    disabled=True
+                                    # disabled=True
                                 ),
                                 dbc.InputGroupText("дн."),
                             ]
@@ -405,7 +405,7 @@ def make_inputs(
                                         "index": cnt + 1,
                                     },
                                     color="gray.7",
-                                    disabled=True
+                                    # disabled=True
                                 ),
                             ]
                         ),
@@ -619,4 +619,4 @@ def calculate(
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True, host="0.0.0.0", port=82)
+    app.run_server(debug=False, host="0.0.0.0", port=82)

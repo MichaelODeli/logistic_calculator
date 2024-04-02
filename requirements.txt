@@ -7,3 +7,6 @@ dash-iconify==0.1.2
 dash-mantine-components==0.12.1
 Flask==2.2.5
 Werkzeug==2.2.3
+cx_Freeze
+cx_Logging
+waitress
