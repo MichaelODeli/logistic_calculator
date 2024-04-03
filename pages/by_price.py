@@ -11,7 +11,7 @@ from dash import (
     no_update,
 )
 
-register_page(__name__, path="/", icon="fa-solid:home", name='Цена | Логист. калькулятор')
+register_page(__name__, path="/by_price", icon="fa-solid:home", name='Цена | Логист. калькулятор')
 
 
 def layout():
