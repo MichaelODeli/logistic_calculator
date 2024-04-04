@@ -285,7 +285,7 @@ def make_inputs(
                                 dbc.Input(
                                     id={"type": "transport_time", "index": cnt + 1},
                                     type="number",
-                                    # disabled=True
+                                    disabled=True
                                 ),
                                 dbc.InputGroupText("дн."),
                             ]
@@ -309,7 +309,7 @@ def make_inputs(
                                         "index": cnt + 1,
                                     },
                                     color="gray.7",
-                                    # disabled=True
+                                    disabled=True
                                 ),
                             ]
                         ),
@@ -355,7 +355,7 @@ def make_inputs(
                         type="number",
                         persistence=allow_save_data_in_fields,
                         style={"text-align": "center"},
-                        disabled=True,
+                        # disabled=True,
                     ),
                 ),
                 html.Td(
@@ -448,13 +448,13 @@ def calculate(
             range(len(operation_time_input)),
         ):
             if process_timeprefix == "days":
-                process_time_conv = float(process_time)
+                process_time_conv = int(process_time)
                 process_timeprefix = "дн."
             elif process_timeprefix == "week":
-                process_time_conv = float(process_time) * 7
+                process_time_conv = int(process_time) * 7
                 process_timeprefix = "нед."
             elif process_timeprefix == "month":
-                process_time_conv = float(process_time) * 30
+                process_time_conv = int(process_time) * 30
                 process_timeprefix = "мес."
             elif process_timeprefix == "hour":
                 process_time_conv = round(float(process_time) / 24, 2)
@@ -471,14 +471,14 @@ def calculate(
                     mathjax=True,
                 )
             )
-            proc_time.append(float(process_time_conv))
-            proc_time_str.append(str(process_time_conv))
+            proc_time.append(process_time_conv/int(process_lines))
+            proc_time_str.append(f'{str(process_time_conv)}/{str(process_lines)}')
 
         posl_value = sum(proc_time) * productions_count
         posl_data = [
             dcc.Markdown("**Последовательный метод**"),
             dcc.Markdown(
-                f'$$t_{"{посл}"} = ({" + ".join(proc_time_str)})*{str(productions_count)} = {str(posl_value)}~(дн.)$$',
+                f'$$t_{"{посл}"} = ({" + ".join(proc_time_str)})*{str(productions_count)} = {str(posl_value)} ~ (дн.)$$',
                 mathjax=True,
             ),
         ]
@@ -488,8 +488,8 @@ def calculate(
             dcc.Markdown("**Параллельный метод**"),
             dcc.Markdown(
                 [
-                    f'$t_{"{парал}"} = ({" + ".join(proc_time_str)})+$\n',
-                    f"$+({str(productions_count)}-1)*{str(max(proc_time_str))} = {str(paral_value)}~(дн.)$",
+                    f'$$t_{"{парал}"} = ({" + ".join(proc_time_str)})+$$\n',
+                    f"$$+({str(productions_count)}-1)*{str(max(proc_time_str))} = {str(paral_value)}~(дн.)$$",
                 ],
                 mathjax=True,
             ),
