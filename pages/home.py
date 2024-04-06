@@ -17,7 +17,6 @@ register_page(__name__, path="/", icon="fa-solid:home", name='Логистиче
 
 
 def layout():
-    # return html.A("Перейти к расчетам", href="/by_time")
     return html.Div(
         [
             dmc.Space(h=10),

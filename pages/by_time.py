@@ -16,6 +16,7 @@ import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 from datetime import datetime
 from dash_extensions import Purify
+from controllers import main_controller as m_c
 
 register_page(__name__, path="/by_time", icon="fa-solid:home", name='Время | Логист. калькулятор')
 
@@ -36,45 +37,7 @@ spravka = """ ##### Описание программы:
 ##### Использованная литература:
 - Богданова, Е. С. Концепция инфокоммуникационной сети как основа разработки интегрированных логистических систем предприятия в условиях цифровой экономики / Е. С. Богданова, Д. Г. Неволин, З. Б. Хмельницкая. – Екатеринбург : Уральский государственный университет путей сообщения, 2022. – 140 с. – ISBN 978-5-94614-504-6. – EDN BOMBRR."""
 
-
-def get_icon(icon):
-    """
-    param:  \n
-    `icon`: icon name
-    """
-    return dmc.ThemeIcon(
-        DashIconify(icon=icon, width=18, color="var(--bs-primary)"),
-        size=20,
-        radius=20,
-        variant="subtle",
-    )
-
-
-def get_hover(item, content, width=300):
-    return dmc.HoverCard(
-        withArrow=True,
-        width=width,
-        shadow="md",
-        children=[
-            dmc.HoverCardTarget(item),
-            dmc.HoverCardDropdown(dcc.Markdown(content)),
-        ],
-    )
-
-
-def get_header_with_help_icon(header_text, hover_text):
-    return dmc.Center(
-        dmc.Group(
-            [
-                html.H5(header_text),
-                get_hover(get_icon("material-symbols:info-outline"), hover_text),
-            ],
-            spacing="xs",
-        )
-    )
-
-
-def get_input_fields_in_table():
+def get_input_fields_in_table(allow_save_data_in_fields):
     table_row_1 = html.Tr(
         [
             html.Td(dmc.Text("Количество товаров")),
@@ -108,27 +71,26 @@ def get_input_fields_in_table():
 
     return html.Table(html.Tbody([table_row_1] + [table_row_2]))
 
-
 def layout():
     line_1 = dmc.Stack(
         [
             html.H3("Переменные для расчета"),
             html.Div(
                 [
-                    get_header_with_help_icon(
+                    m_c.get_header_with_help_icon(
                         "Предварительные параметры",
                         "Поддерживается ввод только целых чисел",
                     ),
                     dcc.Store(id="productions_counter"),
                     dcc.Store(id="operations_counter"),
                     dmc.Space(h=10),
-                    get_input_fields_in_table(),
+                    get_input_fields_in_table(allow_save_data_in_fields),
                 ],
                 className="input-block",
             ),
             html.Div(
                 [
-                    get_header_with_help_icon(
+                    m_c.get_header_with_help_icon(
                         "Настройка времени операций",
                         "",
                     ),
@@ -156,7 +118,7 @@ def layout():
             html.H3("ㅤ"),
             html.Div(
                 [
-                    get_header_with_help_icon(
+                    m_c.get_header_with_help_icon(
                         "Настройка времени транспортировки",
                         "",
                     ),
