@@ -409,20 +409,21 @@ def calculate(
             operation_time_lines,
             range(len(operation_time_input)),
         ):
-            if process_timeprefix == "days":
-                process_time_conv = int(process_time)
-                process_timeprefix = "дн."
-            elif process_timeprefix == "week":
-                process_time_conv = int(process_time) * 7
-                process_timeprefix = "нед."
-            elif process_timeprefix == "month":
-                process_time_conv = int(process_time) * 30
-                process_timeprefix = "мес."
-            elif process_timeprefix == "hour":
-                process_time_conv = round(float(process_time) / 24, 2)
-                process_timeprefix = "час."
-            else:
-                process_time_conv = None
+            match process_timeprefix:
+                case 'days': 
+                    process_time_conv = int(process_time)
+                    process_timeprefix = "дн."
+                case 'week':
+                    process_time_conv = int(process_time) * 7
+                    process_timeprefix = "нед."
+                case 'month':
+                    process_time_conv = int(process_time) * 30
+                    process_timeprefix = "мес."
+                case 'hour':
+                    process_time_conv = round(float(process_time) / 24, 2)
+                    process_timeprefix = "час."
+                case _:
+                    process_time_conv = None
             source_data.append(
                 dcc.Markdown(
                     (

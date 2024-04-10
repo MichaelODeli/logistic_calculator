@@ -23,7 +23,7 @@ register_page(
 allow_save_data_in_fields = False
 
 
-def get_tablerow_with_input(parameter_id=None, value_name=None, divider=False):
+def get_tablerow_with_input(parameter_id=None, value_name=None):
     global allow_save_data_in_fields
     return html.Tr(
         [
@@ -36,8 +36,8 @@ def get_tablerow_with_input(parameter_id=None, value_name=None, divider=False):
                     persistence=allow_save_data_in_fields,
                 )
             ),
-        ]
-    ) if divider==False else html.Tr(dmc.Divider())
+        ], id=f'tr_{parameter_id}'
+    )
 
 
 def layout():
@@ -47,6 +47,13 @@ def layout():
             html.H3("Исходные данные"),
             html.Div(
                 [
+                    dbc.ButtonGroup(
+                        [
+                            dbc.Button('Подсветить параметры для P1', id='toggle_hover_P1'),
+                            dbc.Button('Подсветить параметры для P2', id='toggle_hover_P2')
+                        ]
+                    ),
+                    dmc.Space(h=10),
                     # оформить ввод данных в виде таблицы
                     html.Table(
                         html.Tbody(
@@ -100,3 +107,31 @@ def layout():
             dmc.Col(span="auto"),
         ]
     )
+
+# for tests
+@callback(
+    [
+        Output('toggle_hover_P1', 'n_clicks'),
+        Output('toggle_hover_P2', 'n_clicks'),
+        Output('tr_R1', 'style'),
+        Output('tr_R2', 'style'),
+        Output('tr_R3', 'style'),
+        Output('tr_C1', 'style'),
+        Output('tr_A1', 'style'),
+        Output('tr_C2', 'style'),
+        Output('tr_C3', 'style'),
+        Output('tr_A2', 'style'),
+        Output('tr_C4', 'style'),
+    ],
+    [
+        Input('toggle_hover_P1', 'n_clicks'),
+        Input('toggle_hover_P2', 'n_clicks'),
+    ],
+    prevent_initial_call=True
+)
+def color_row(n_clicks_one, n_clicks_two):
+    style = {'background-color': '#FFF000'}
+    if n_clicks_one is not None:
+        return [None, None] + [style]*9
+    if n_clicks_two is not None:
+        return [None, None] + [None]*9
