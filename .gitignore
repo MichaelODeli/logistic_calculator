@@ -1,6 +1,5 @@
 formulas input/
 *.py_old
 *.ipynb
-build/
-dist/
+input.txt
 __pycache__

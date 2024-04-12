@@ -27,7 +27,7 @@ app.config.suppress_callback_exceptions = True
 header_buttons = dbc.ButtonGroup(
     [
         dbc.Button(
-            "Открыть логистическую схему предприятия",
+            "Логистическая схема предприятия",
             outline=True,
             id="open-flowchart",
             color="primary",
@@ -38,14 +38,14 @@ header_buttons = dbc.ButtonGroup(
             id="drawer-init",
             color="primary",
         ),
-        dbc.Button(
-            "Сбросить все поля",
-            outline=True,
-            color="danger",
-            id="fields-reset",
-            # disabled=True,
-            # href='/'
-        ),
+        # dbc.Button(
+        #     "Сбросить все поля",
+        #     outline=True,
+        #     color="danger",
+        #     id="fields-reset",
+        #     # disabled=True,
+        #     # href='/'
+        # ),
     ]
 )
 
