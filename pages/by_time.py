@@ -243,13 +243,15 @@ def make_inputs(
                                 dbc.InputGroupText(
                                     f"Время транспортировки до пункта {cnt+1}",
                                     style={"font-size": "14px"},
+                                    class_name='inputgroup-background'
                                 ),
                                 dbc.Input(
                                     id={"type": "transport_time", "index": cnt + 1},
                                     type="number",
-                                    disabled=True
+                                    disabled=True,
+                                    class_name='border border-dark-subtle'
                                 ),
-                                dbc.InputGroupText("дн."),
+                                dbc.InputGroupText("дн.", class_name='inputgroup-background'),
                             ]
                         ),
                         dmc.Group(

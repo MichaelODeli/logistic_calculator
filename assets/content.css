@@ -15,12 +15,35 @@ td {
     padding: 5px;
 }
 
-@media (max-width: 1200px) {
+table {
+    box-shadow: unset !important;
+}
+
+.table>:not(caption)>*>* {
+    padding: 5px !important;
+}
+
+@media (max-width: 1600px) {
     .block-grid {
         display: block;
     }
     .block-col {
-        max-width: 100%;
+        min-width: 80%;
         display: block;
+        margin: auto;
     }
+    .hide-it {
+        display: none !important;
+    }
+    .hide-text {
+        overflow: hidden;
+        width: 9rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.inputgroup-background {
+    background-color: var(--bs-btn-bg);
+    border-color: var(--bs-dark-border-subtle);
 }
