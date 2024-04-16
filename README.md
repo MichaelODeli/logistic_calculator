@@ -3,14 +3,14 @@
 
 ## Особенности приложения:
 ### Адаптивный дизайн
-<img src="pictures/adaptive_phone.png" alt="drawing" height="600"/>
-<img src="pictures/adaptive_ipad.png" alt="drawing" height="600"/>
+<kbd><img src="pictures/adaptive_phone.png" alt="drawing" height="500"/></kbd>
+<kbd><img src="pictures/adaptive_ipad.png" alt="drawing" height="500"/></kbd>
 
 ### Светлая и темная темы
-<img src="pictures/dark.png" alt="drawing" height="600"/>
+<kbd><img src="pictures/dark.png" alt="drawing" height="600"/></kbd>
 
 ### Расчет технологических процессов по их времени
-<img src="pictures/time_calc.png" alt="drawing" height="600"/>
+<kbd><img src="pictures/time_calc.png" alt="drawing" height="600"/></kbd>
 
 - Расчет параллельного и последовательного вида производственного процесса
 - Настройка одновременно выполняемых параметров на одном этапе
@@ -20,7 +20,7 @@
 
 
 ### Расчет себестоимостей складов как элемента логистической цепочки
-<img src="pictures/price_calc.png" alt="drawing" height="600"/>
+<kbd><img src="pictures/price_calc.png" alt="drawing" height="600"/></kbd>
 
 - Более 40 различных параметров, характеризующих расходы при обслуживании складских помещений
 - Вывод формул в LaTex-формате
