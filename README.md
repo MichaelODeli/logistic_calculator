@@ -10,7 +10,7 @@
 <kbd><img src="pictures/dark.png" alt="drawing" height="600"/></kbd>
 
 ### Расчет технологических процессов по их времени
-<kbd><img src="pictures/time_calc.png" alt="drawing" height="600"/></kbd>
+<kbd><img src="pictures/time_calc.png" alt="drawing" height="400"/></kbd>
 
 - Расчет параллельного и последовательного вида производственного процесса
 - Настройка одновременно выполняемых параметров на одном этапе
@@ -20,7 +20,7 @@
 
 
 ### Расчет себестоимостей складов как элемента логистической цепочки
-<kbd><img src="pictures/price_calc.png" alt="drawing" height="600"/></kbd>
+<kbd><img src="pictures/price_calc.png" alt="drawing" height="400"/></kbd>
 
 - Более 40 различных параметров, характеризующих расходы при обслуживании складских помещений
 - Вывод формул в LaTex-формате
