@@ -444,7 +444,7 @@ def make_price_calc(
             res_md = dcc.Markdown(f'$\large P1 = {res}$', mathjax=True)
             content = dmc.Stack(
                 [
-                    dcc.Markdown('Выбран режим: P1.'),
+                    dcc.Markdown('Выбран режим P1 - *Себестоимость хранения товара на 1 кв.м*.'),
                     P1_formula,
                     res_md
                 ],
@@ -482,7 +482,7 @@ def make_price_calc(
             res_md = dcc.Markdown(f'$\large P2 = {res}$', mathjax=True)
             content = dmc.Stack(
                 [
-                    dcc.Markdown('Выбран режим: P2.'),
+                    dcc.Markdown('Выбран режим P2 - *Себестоимость одного паллетоместа*.'),
                     P2_formula,
                     res_md
                 ],
@@ -517,7 +517,7 @@ def make_price_calc(
             res_md = dcc.Markdown(f'$\large P4 = {res}$', mathjax=True)
             content = dmc.Stack(
                 [
-                    dcc.Markdown('Выбран режим: P4.'),
+                    dcc.Markdown('Выбран режим P4 - *Себестоимость на один паллет при приемке груза*.'),
                     P4_formula,
                     res_md
                 ],
@@ -555,7 +555,8 @@ def make_price_calc(
 
             content = dmc.Stack(
                 [
-                    dcc.Markdown('Выбран режим: B1. Также будет расчитан параметр P2.'),
+                    dcc.Markdown('Выбран режим B1 - *Рентабельность услуги хранения по конкретному клиенту*.'),
+                    dcc.Markdown('Также будет расчитан параметр P2 - *Себестоимость одного паллетоместа*.'),
                     P2_formula,
                     dcc.Markdown(f'$\large P2 = {res_p2}$', mathjax=True),
                     B1_formula,
@@ -592,7 +593,8 @@ def make_price_calc(
 
             content = dmc.Stack(
                 [
-                    dcc.Markdown('Выбран режим: B2. Также будет расчитан параметр P4.'),
+                    dcc.Markdown('Выбран режим B2 - *Рентабельность услуги при приемке груза*.'),
+                    dcc.Markdown('Также будет расчитан параметр P4 - *Себестоимость на один паллет при приемке груза*.'),
                     P4_formula,
                     dcc.Markdown(f'$\large P4 = {res_p4}$', mathjax=True),
                     B2_formula,
