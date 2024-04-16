@@ -234,7 +234,7 @@ def make_inputs(
         lineWidth=2,
         children=[
             dmc.TimelineItem(
-                title=f"Операция {cnt+1}",
+                title=html.Div(f"Операция {cnt+1}", style={'color': 'var(--bs-body-color)'}),
                 color="gray.7",
                 children=dmc.Stack(
                     [
@@ -256,7 +256,7 @@ def make_inputs(
                         ),
                         dmc.Group(
                             [
-                                "Значимость",
+                                html.Div("Значимость", style={'color': 'var(--bs-body-color)'}),
                                 dmc.Slider(
                                     min=0,
                                     max=100,

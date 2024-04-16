@@ -1,40 +1,49 @@
+/* Стили для блоков ввода и вывода */
 .input-block,
 .output-block {
-    box-shadow: 4px 4px 8px rgba(0,0,0,0.3);
-    text-align: center;
-    width: 100%;
-    padding: 10px;
-    border-radius: 5px;
+    box-shadow: 4px 4px 8px rgba(0,0,0,0.3); /* Тень блока */
+    text-align: center; /* Выравнивание текста по центру */
+    width: 100%; /* Ширина блока */
+    padding: 10px; /* Отступы внутри блока */
+    border-radius: 5px; /* Скругление углов */
 }
 
+/* Удаление отступов у абзацев */
 p {
     margin-bottom: 0;
 }
 
+/* Поля для ячеек таблицы */
 td {
-    padding: 5px;
-}
+    padding: 5px !important;
+} 
 
+/* Сброс тени у таблицы */
 table {
     box-shadow: unset !important;
 }
 
-.table>:not(caption)>*>* {
+/* Стили для дочерних элементов таблицы, кроме заголовка */
+.table > :not(caption) > * {
     padding: 5px !important;
 }
 
+/* Медиа-запрос для экранов шириной до 1600px */
 @media (max-width: 1600px) {
+    /* Изменение стилей для блочных элементов на больших экранах */
     .block-grid {
         display: block;
     }
     .block-col {
-        min-width: 80%;
+        min-width: 80%; /* Минимальная ширина блока */
         display: block;
-        margin: auto;
+        margin: auto; /* Центрирование блока */
     }
+    /* Скрытие элемента */
     .hide-it {
         display: none !important;
     }
+    /* Обрезка текста с троеточием при переполнении */
     .hide-text {
         overflow: hidden;
         width: 9rem;
@@ -43,7 +52,29 @@ table {
     }
 }
 
+/* Медиа-запрос для экранов шириной до 768px */
+@media (max-width: 768px) {
+    /* Адаптивный блок на полном экране */
+    .offcanvas-adaptive {
+        min-width: 100%;
+    }
+    /* Изменение стилей для блочных элементов на маленьких экранах */
+    .block-col {
+        min-width: 95%; /* Минимальная ширина блока */
+    }
+    /* Адаптивная ширина кнопки */
+    .adaptive-button {
+        width: 75% !important;
+    }
+}
+
+/* Фон для группы ввода */
 .inputgroup-background {
-    background-color: var(--bs-btn-bg);
-    border-color: var(--bs-dark-border-subtle);
+    background-color: var(--bs-btn-bg); /* Цвет фона */
+    border-color: var(--bs-dark-border-subtle); /* Цвет рамки */
+}
+
+/* Минимальная ширина для элемента управления формы */
+.form-control {
+    min-width: 80px;
 }

@@ -76,7 +76,7 @@ main_container = html.Div(
                     gutter="xs",
                 ),
             ],
-            style={'height': '80px'},
+            style={'min-height': '80px'},
             class_name='rounded border-bottom',
             color='default',
             # dark=True
@@ -98,12 +98,11 @@ main_container = html.Div(
                 )
             ],
         ),
-        dmc.Drawer(
+        dbc.Offcanvas(
             title=html.H4("Справка"),
-            size="55%",
+            className='offcanvas-adaptive',
+            style={'width': '55%'},
             id="drawer-help",
-            padding="md",
-            zIndex=10000,
             children=[dcc.Markdown(spravka)],
         ),
     ],
@@ -136,13 +135,15 @@ def toggle_modal(_, opened):
 
 
 # drawer with help
-@callback(
-    Output("drawer-help", "opened"),
+@app.callback(
+    Output("drawer-help", "is_open"),
     Input("drawer-init", "n_clicks"),
-    prevent_initial_call=True,
+    [State("drawer-help", "is_open")],
 )
-def drawer_show(_):
-    return True
+def toggle_offcanvas(n1, is_open):
+    if n1:
+        return not is_open
+    return is_open
 
 
 dev = True
