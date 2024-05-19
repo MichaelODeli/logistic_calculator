@@ -3,8 +3,8 @@ from dash import html, Output, Input, State, callback, dcc, clientside_callback
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 
+
 spravka = """ ##### Описание программы:
-`бла-бла-бла`
 
 ---
 
@@ -34,7 +34,7 @@ header_buttons = dbc.ButtonGroup(
         dbc.Button(
             "Справка",
             outline=True,
-            id="drawer-init",
+            id="offcanvas-init",
             color="primary",
         ),
     ]
@@ -102,7 +102,7 @@ main_container = html.Div(
             title=html.H4("Справка"),
             className='offcanvas-adaptive',
             style={'width': '55%'},
-            id="drawer-help",
+            id="offcanvas-help",
             children=[dcc.Markdown(spravka)],
         ),
     ],
@@ -134,11 +134,11 @@ def toggle_modal(_, opened):
     return not opened
 
 
-# drawer with help
+# offcanvas with help
 @app.callback(
-    Output("drawer-help", "is_open"),
-    Input("drawer-init", "n_clicks"),
-    [State("drawer-help", "is_open")],
+    Output("offcanvas-help", "is_open"),
+    Input("offcanvas-init", "n_clicks"),
+    [State("offcanvas-help", "is_open")],
 )
 def toggle_offcanvas(n1, is_open):
     if n1:
@@ -146,7 +146,7 @@ def toggle_offcanvas(n1, is_open):
     return is_open
 
 
-dev = False
+dev = True
 if __name__ == "__main__":
     if dev: 
         app.run_server(debug=True, host="0.0.0.0", port=82)

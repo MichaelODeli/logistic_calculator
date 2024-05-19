@@ -17,11 +17,21 @@ from dash_iconify import DashIconify
 from datetime import datetime
 from dash_extensions import Purify
 from controllers import main_controller as m_c
+from random import randint
+import networkx as nx
+import matplotlib
+import matplotlib.pyplot
+import io
+import base64
 
-register_page(__name__, path="/by_time", icon="fa-solid:home", name='Время | Логист. калькулятор')
+register_page(
+    __name__, path="/by_time", icon="fa-solid:home", name="Время | Логист. калькулятор"
+)
 
 operations_counter_global = 0
+transportways_count_global = 0
 allow_save_data_in_fields = False
+demo_data = True
 time_dropdown_items = [
     {"label": "мес.", "value": "month"},
     {"label": "нед.", "value": "week"},
@@ -37,7 +47,9 @@ spravka = """ ##### Описание программы:
 ##### Использованная литература:
 - Богданова, Е. С. Концепция инфокоммуникационной сети как основа разработки интегрированных логистических систем предприятия в условиях цифровой экономики / Е. С. Богданова, Д. Г. Неволин, З. Б. Хмельницкая. – Екатеринбург : Уральский государственный университет путей сообщения, 2022. – 140 с. – ISBN 978-5-94614-504-6. – EDN BOMBRR."""
 
+
 def get_input_fields_in_table(allow_save_data_in_fields):
+    global demo_data
     table_row_1 = html.Tr(
         [
             html.Td(dmc.Text("Количество товаров")),
@@ -47,6 +59,7 @@ def get_input_fields_in_table(allow_save_data_in_fields):
                     id="productions_count",
                     type="number",
                     persistence=allow_save_data_in_fields,
+                    value=5 if demo_data else None,
                 )
             ),
         ]
@@ -61,6 +74,22 @@ def get_input_fields_in_table(allow_save_data_in_fields):
                     id="operations_count",
                     type="number",
                     persistence=allow_save_data_in_fields,
+                    value=6 if demo_data else None,
+                ),
+            ),
+        ]
+    )
+
+    table_row_3 = html.Tr(
+        [
+            html.Td(dmc.Text("Количество путей перевозки")),
+            html.Td(
+                dbc.Input(
+                    placeholder="Введите число",
+                    id="transportways_count",
+                    type="number",
+                    persistence=allow_save_data_in_fields,
+                    value=5 if demo_data else None,
                 ),
             ),
             html.Td(
@@ -69,7 +98,8 @@ def get_input_fields_in_table(allow_save_data_in_fields):
         ]
     )
 
-    return html.Table(html.Tbody([table_row_1] + [table_row_2]))
+    return html.Table(html.Tbody([table_row_1] + [table_row_2] + [table_row_3]))
+
 
 def layout():
     line_1 = dmc.Stack(
@@ -92,7 +122,7 @@ def layout():
                 [
                     m_c.get_header_with_help_icon(
                         "Настройка времени операций",
-                        "",
+                        "Для сложного производства требуется дополнительно указать тип отдельного производства и время транспортировки грузов между этапами.",
                     ),
                     dmc.Space(h=10),
                     html.Div(
@@ -163,8 +193,8 @@ def layout():
         dmc.Grid(
             children=[
                 dmc.Col(html.Div(line_1), span=4, className="block-col"),
-                dmc.Col(html.Div(line_2), span=3, className="block-col"),
-                dmc.Col(html.Div(line_3), span=5, className="block-col"),
+                dmc.Col(html.Div(line_2), span=4, className="block-col"),
+                dmc.Col(html.Div(line_3), span=4, className="block-col"),
             ],
             gutter="xl",
             className="block-grid",
@@ -200,8 +230,14 @@ def clear_all_fields(n_clicks, counter):
     [
         State("operations_count", "value"),
         State("productions_count", "value"),
+        State("transportways_count", "value"),
         State({"type": "operation_time_input", "index": ALL}, "value"),
         State({"type": "operation_time_timetype", "index": ALL}, "value"),
+        State({"type": "from_point", "index": ALL}, "value"),
+        State({"type": "to_point", "index": ALL}, "value"),
+        State({"type": "time_between_points", "index": ALL}, "value"),
+        State({"type": "delivery_type", "index": ALL}, "value"),
+        State({"type": "production_type", "index": ALL}, "value"),
     ],
     prevent_initial_call=True,
 )
@@ -209,9 +245,17 @@ def make_inputs(
     n_clicks,
     operations_count,
     productions_count,
+    transportways_count,
     operation_time_input,
     operation_time_timetype,
+    from_point,
+    to_point,
+    time_between_points,
+    delivery_type,
+    production_type,
 ):
+    if n_clicks == None:
+        return [no_update] * 5
     fault_notif = dmc.Notification(
         title="Ошибка ввода данных",
         id="simple-notify",
@@ -220,88 +264,134 @@ def make_inputs(
         icon=DashIconify(icon="material-symbols:error-outline"),
         color="red",
     )
-    if operations_count == None or productions_count == None:
+    if (
+        operations_count == None
+        or productions_count == None
+        or transportways_count == None
+    ):
         return no_update, no_update, no_update, no_update, fault_notif
 
     global operations_counter_global
     global time_dropdown_items
+    global transportways_count_global
+    global demo_data
     operations_counter_global = operations_count
+    transportways_count_global = transportways_count
 
-    # transport time block
-    tr_block = dmc.Timeline(
-        active=operations_count,
-        bulletSize=20,
-        lineWidth=2,
-        children=[
-            dmc.TimelineItem(
-                title=html.Div(f"Операция {cnt+1}", style={'color': 'var(--bs-body-color)'}),
-                color="gray.7",
-                children=dmc.Stack(
-                    [
-                        dbc.InputGroup(
-                            [
-                                dbc.InputGroupText(
-                                    f"Время транспортировки до пункта {cnt+1}",
-                                    style={"font-size": "14px"},
-                                    class_name='inputgroup-background'
-                                ),
-                                dbc.Input(
-                                    id={"type": "transport_time", "index": cnt + 1},
-                                    type="number",
-                                    disabled=True,
-                                    class_name='border border-dark-subtle'
-                                ),
-                                dbc.InputGroupText("дн.", class_name='inputgroup-background'),
-                            ]
-                        ),
-                        dmc.Group(
-                            [
-                                html.Div("Значимость", style={'color': 'var(--bs-body-color)'}),
-                                dmc.Slider(
-                                    min=0,
-                                    max=100,
-                                    value=100,
-                                    step=5,
-                                    style={"width": "70%", "margin-bottom": "15px"},
-                                    marks=[
-                                        {"value": 20, "label": "20%"},
-                                        {"value": 50, "label": "50%"},
-                                        {"value": 80, "label": "80%"},
-                                    ],
-                                    id={
-                                        "type": "transport_time_important",
-                                        "index": cnt + 1,
-                                    },
-                                    color="gray.7",
-                                    disabled=True
-                                ),
-                            ]
-                        ),
-                    ]
-                ),
+    if demo_data:
+        from_point = [i + 1 for i in range(transportways_count)]
+        to_point = [i + 2 for i in range(transportways_count)]
+        time_between_points = [randint(1, 7) for i in range(transportways_count)]
+        delivery_type = [
+            ["paral", "posl", "p-p"][randint(0, 2)] for i in range(transportways_count)
+        ]
+    else:
+        if transportways_count < len(from_point):
+            pass
+        else:
+            from_point += [None] * (transportways_count - len(from_point))
+            to_point += [None] * (transportways_count - len(to_point))
+            time_between_points += [None] * (
+                transportways_count - len(time_between_points)
             )
-            for cnt in range(int(operations_count))
-        ],
-    )
+            delivery_type += [None] * (transportways_count - len(delivery_type))
+
+    tr_tbl_header = [
+        html.Thead(
+            html.Tr(
+                [
+                    html.Th("№"),
+                    html.Th("Начальный пункт"),
+                    html.Th("Конечный пункт"),
+                    html.Th("Время перевозки (дн.)"),
+                    html.Th("Тип перевозки"),
+                ]
+            )
+        )
+    ]
+    tr_inputs_list = [
+        html.Tr(
+            [
+                html.Td(str(i + 1)),
+                html.Td(
+                    dbc.Select(
+                        placeholder="Откуда",
+                        id={"type": "from_point", "index": i + 1},
+                        options=[
+                            {"label": j + 1, "value": j + 1}
+                            for j in range(int(operations_count))
+                        ],
+                        className="custom-back-color",
+                        value=from_point[i],
+                    )
+                ),
+                html.Td(
+                    dbc.Select(
+                        placeholder="Куда",
+                        id={"type": "to_point", "index": i + 1},
+                        options=[
+                            {"label": j + 1, "value": j + 1}
+                            for j in range(int(operations_count))
+                        ],
+                        className="custom-back-color",
+                        value=to_point[i],
+                    )
+                ),
+                html.Td(
+                    dbc.Input(
+                        placeholder=f"Время",
+                        id={"type": "time_between_points", "index": i + 1},
+                        type="number",
+                        style={"text-align": "center"},
+                        value=time_between_points[i],
+                    ),
+                ),
+                html.Td(
+                    dbc.Select(
+                        placeholder="Тип перевозки",
+                        id={"type": "delivery_type", "index": i + 1},
+                        options=[
+                            {"label": "параллельный", "value": "paral"},
+                            {"label": "последовательный", "value": "posl"},
+                            {"label": "п.-п.", "value": "p-p"},
+                        ],
+                        className="custom-back-color",
+                        value=delivery_type[i],
+                    )
+                ),
+            ]
+        )
+        for i in range(int(transportways_count))
+    ]
 
     # operations time block
-
-    if operations_count < len(operation_time_input):
-        operation_time_input = operation_time_input[:operations_count]
-        operation_time_timetype = operation_time_timetype[:operations_count]
+    if demo_data:
+        operation_time_input = [randint(1, 7) for i in range(operations_count)]
+        operation_time_timetype = ["days" for i in range(operations_count)]
+        production_type = [
+            ["paral", "posl", "p-p"][randint(0, 2)] for i in range(operations_count)
+        ]
     else:
-        operation_time_input += [None] * (operations_count - len(operation_time_input))
-        operation_time_timetype += ["days"] * (
-            operations_count - len(operation_time_timetype)
-        )
+        if operations_count < len(operation_time_input):
+            operation_time_input = operation_time_input[:operations_count]
+            operation_time_timetype = operation_time_timetype[:operations_count]
+        else:
+            operation_time_input += [None] * (
+                operations_count - len(operation_time_input)
+            )
+            operation_time_timetype += ["days"] * (
+                operations_count - len(operation_time_timetype)
+            )
+            production_type += ["posl"] * (operations_count - len(production_type))
 
     tbl_header = [
         html.Thead(
             html.Tr(
                 [
                     html.Th("№"),
-                    html.Th("Одновременных операций"),
+                    html.Th("Одновр. операций"),
                     html.Th("Время 1 операции"),
+                    html.Th("Тип производства"),
                     html.Th("Тип времени"),
                 ]
             )
@@ -319,7 +409,7 @@ def make_inputs(
                         type="number",
                         persistence=allow_save_data_in_fields,
                         style={"text-align": "center"},
-                        # disabled=True,
+                        disabled=True,
                     ),
                 ),
                 html.Td(
@@ -334,6 +424,19 @@ def make_inputs(
                 ),
                 html.Td(
                     dbc.Select(
+                        placeholder="Тип производства",
+                        id={"type": "production_type", "index": i + 1},
+                        options=[
+                            {"label": "параллельное", "value": "paral"},
+                            {"label": "последовательное", "value": "posl"},
+                            {"label": "п.-п.", "value": "p-p"},
+                        ],
+                        className="custom-back-color",
+                        value=production_type[i],
+                    )
+                ),
+                html.Td(
+                    dbc.Select(
                         placeholder="Тип введенного времени",
                         id={"type": "operation_time_timetype", "index": i + 1},
                         options=time_dropdown_items,
@@ -344,11 +447,16 @@ def make_inputs(
         )
         for i in range(int(operations_count))
     ]
-    send_button = dbc.Button("Рассчитать", id="make_calc", class_name="btn_calc")
+    send_button = dbc.Button(
+        "Рассчитать простое производство", id="make_calc", class_name="btn_calc"
+    )
+    send_2_button = dbc.Button(
+        "Рассчитать сложное производство", id="make_calc_hard", class_name="btn_calc"
+    )
 
     return (
-        dmc.Stack([html.Table(tbl_header + inputs_list), send_button]),
-        tr_block,
+        dmc.Stack([html.Table(tbl_header + inputs_list), send_button, send_2_button]),
+        html.Table(tr_tbl_header + tr_inputs_list),
         str(operations_count),
         str(productions_count),
         no_update,
@@ -357,7 +465,7 @@ def make_inputs(
 
 @callback(
     [
-        Output("calc_output", "children"),
+        Output("calc_output", "children", allow_duplicate=True),
         Output("make_calc", "n_clicks"),
         Output("notifications-container-2", "children"),
     ],
@@ -412,16 +520,16 @@ def calculate(
             range(len(operation_time_input)),
         ):
             match process_timeprefix:
-                case 'days': 
+                case "days":
                     process_time_conv = int(process_time)
                     process_timeprefix = "дн."
-                case 'week':
+                case "week":
                     process_time_conv = int(process_time) * 7
                     process_timeprefix = "нед."
-                case 'month':
+                case "month":
                     process_time_conv = int(process_time) * 30
                     process_timeprefix = "мес."
-                case 'hour':
+                case "hour":
                     process_time_conv = round(float(process_time) / 24, 2)
                     process_timeprefix = "час."
                 case _:
@@ -436,8 +544,8 @@ def calculate(
                     mathjax=True,
                 )
             )
-            proc_time.append(process_time_conv/int(process_lines))
-            proc_time_str.append(f'{str(process_time_conv)}/{str(process_lines)}')
+            proc_time.append(process_time_conv / int(process_lines))
+            proc_time_str.append(f"{str(process_time_conv)}/{str(process_lines)}")
 
         posl_value = sum(proc_time) * productions_count
         posl_data = [
@@ -482,3 +590,104 @@ def calculate(
             children = []
         children.append(results)
         return children, None, None
+
+
+@callback(
+    Output("calc_output", "children"),
+    Input("make_calc_hard", "n_clicks"),
+    [
+        State("operations_count", "value"),
+        State("productions_count", "value"),
+        State("transportways_count", "value"),
+        State({"type": "operation_time_input", "index": ALL}, "value"),
+        State({"type": "operation_time_timetype", "index": ALL}, "value"),
+        State({"type": "from_point", "index": ALL}, "value"),
+        State({"type": "to_point", "index": ALL}, "value"),
+        State({"type": "time_between_points", "index": ALL}, "value"),
+        State({"type": "delivery_type", "index": ALL}, "value"),
+        State({"type": "production_type", "index": ALL}, "value"),
+    ],
+    prevent_initial_call=True,
+)
+def make_inputs(
+    n_clicks,
+    operations_count,
+    productions_count,
+    transportways_count,
+    operation_time_input,
+    operation_time_timetype,
+    from_point,
+    to_point,
+    time_between_points,
+    delivery_type,
+    production_type,
+):
+    if n_clicks == None:
+        return no_update
+    else:
+        G = nx.DiGraph(directed=True)
+
+        # add NODES with properties
+        for node_id, process_time, process_timeprefix, production_type1 in zip(
+            range(productions_count),
+            operation_time_input,
+            operation_time_timetype,
+            production_type,
+        ):
+            node_id += 1
+            # decode timeprefix
+            match process_timeprefix:
+                case "days":
+                    process_time = int(process_time)
+                case "week":
+                    process_time = int(process_time) * 7
+                case "month":
+                    process_time = int(process_time) * 30
+                case "hour":
+                    process_time = round(float(process_time) / 24, 2)
+            G.add_node(node_id, weight=process_time, production_type=production_type1)
+
+        # add EDGES with properties
+        for from_point1, to_point1, time_between_points1, delivery_type1 in zip(
+            from_point, to_point, time_between_points, delivery_type
+        ):
+            G.add_edge(
+                int(from_point1),
+                int(to_point1),
+                weight=time_between_points1,
+                delivery_type=delivery_type1,
+            )
+
+        # draw fig
+        options = {
+            "node_color": "#4e6de6",  # color of node
+            "node_size": 500,  # size of node
+            "width": 1.5,  # line width of edges
+            "arrowstyle": "-|>",  # array style for directed graph
+            "arrowsize": 20,  # size of arrow
+        }
+        fig = matplotlib.pyplot.figure()
+        weight_edge_labels = nx.get_edge_attributes(G, "weight")
+        dtype_edge_labels = nx.get_edge_attributes(G, "delivery_type")
+        pos = nx.circular_layout(G)
+        nx.draw(G, ax=fig.add_subplot(), pos=pos, with_labels=True, **options)
+
+        # combine labels and add to nx
+        d3 = {}
+        for key in dtype_edge_labels:
+            d3[key] = f"{weight_edge_labels[key]} ({dtype_edge_labels[key]})"
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=d3)
+
+        # encode fig to base64
+        buf = io.BytesIO()  # in-memory files
+        fig.savefig(buf, format="png")
+        data = base64.b64encode(buf.getbuffer()).decode("utf8")
+
+        return dmc.Stack(
+            [
+                html.Img(
+                    src="data:image/png;base64,{}".format(data), style={"width": "90%"}
+                ),
+                html.P(["longest way ", str(nx.dag_longest_path(G))])
+            ]
+        )

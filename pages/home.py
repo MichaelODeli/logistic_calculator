@@ -1,14 +1,6 @@
 from dash import (
-    dcc,
     html,
-    Input,
-    Output,
-    callback,
     register_page,
-    State,
-    Input,
-    Output,
-    no_update,
 )
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
@@ -32,7 +24,7 @@ def layout():
                                     [
                                         html.H4("По времени", className="card-title"),
                                         html.P(
-                                            "Описание расчетов. "*5,
+                                            "Описание расчетов. ",
                                             className="card-text",
                                         ),
                                         dmc.Space(h=10),
@@ -50,7 +42,7 @@ def layout():
                                     [
                                         html.H4("По цене", className="card-title"),
                                         html.P(
-                                            "Описание расчетов. "*5,
+                                            "Описание расчетов. ",
                                             className="card-text",
                                         ),
                                         dmc.Space(h=10),
