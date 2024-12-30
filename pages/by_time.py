@@ -292,11 +292,14 @@ def make_inputs(
     if demo_data:
         from_point = [i + 1 for i in range(transportways_count)]
         to_point = [i + 2 for i in range(transportways_count)]
-        time_between_points = [randint(1, 7) for i in range(transportways_count)]
+        # time_between_points = [randint(1, 7) for i in range(transportways_count)]
+        time_between_points = [1 for i in range(transportways_count)]
         delivery_type = [
-            ["paral", "posl", "p-p"][randint(0, 2)] for i in range(transportways_count)
+            # ["paral", "posl", "p-p"][randint(0, 2)] for i in range(transportways_count)
+            ["paral", "posl", "p-p"][1] for i in range(transportways_count)
         ]
-        parallel_delivery = [randint(1, 3) for i in range(transportways_count)]
+        # parallel_delivery = [randint(1, 3) for i in range(transportways_count)]
+        parallel_delivery = [1 for i in range(transportways_count)]
     else:
         if transportways_count < len(from_point):
             pass
@@ -391,9 +394,11 @@ def make_inputs(
         operation_time_input = [randint(1, 7) for i in range(operations_count)]
         operation_time_timetype = ["days" for i in range(operations_count)]
         production_type = [
-            ["paral", "posl", "p-p"][randint(0, 2)] for i in range(operations_count)
+            # ["paral", "posl", "p-p"][randint(0, 2)] for i in range(operations_count)
+            ["paral", "posl", "p-p"][1] for i in range(operations_count)
         ]
-        parallel_operations = [randint(1, 3) for i in range(operations_count)]
+        # parallel_operations = [randint(1, 3) for i in range(operations_count)]
+        parallel_operations = [1 for i in range(operations_count)]
     else:
         if operations_count < len(operation_time_input):
             operation_time_input = operation_time_input[:operations_count]
@@ -687,7 +692,7 @@ def calculate_hard(
                     process_time = round(float(process_time) / 24, 2)
             G.add_node(
                 node_id,
-                weight=recalc_time,
+                weight=recalc_time/10,
                 production_type=production_type1,
                 parallel_operations=parallel_operations1,
             )
@@ -711,7 +716,7 @@ def calculate_hard(
                     products_count,
                     delivery_type1,
                     parallel_delivery1,
-                ),
+                )/10,
                 delivery_type=delivery_type1,
                 parallel_delivery=parallel_delivery1,
             )
@@ -772,11 +777,21 @@ def calculate_hard(
         fig.savefig(buf, format="png")
         data = base64.b64encode(buf.getbuffer()).decode("utf8")
 
-        # critical way calc
-        longest_way = nx.dag_longest_path(G)
-        weight_sum = nx.path_weight(G, longest_way, "weight") + sum(
-            [G.nodes[node]["weight"] for node in G.nodes]
-        )
+        try:
+            # critical way calc
+            nodes_weight = 0
+            for node in G.nodes:
+                if "weight" in G.nodes[node]:
+                    nodes_weight += G.nodes[node]["weight"]
+
+            longest_way = nx.dag_longest_path(G)
+            weight_sum = nx.path_weight(G, longest_way, "weight") + nodes_weight
+        except KeyError:
+            longest_way = None
+            weight_sum = 0
+        finally:
+            # print([G.nodes[node] for node in G.nodes])
+            pass
 
         return dmc.Stack(
             [
@@ -785,7 +800,7 @@ def calculate_hard(
                 ),
                 html.P(
                     [
-                        "longest way ",
+                        "Критический путь ",
                         str(longest_way),
                         " = ",
                         round(weight_sum, 2),

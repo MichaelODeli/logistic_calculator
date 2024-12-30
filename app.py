@@ -63,7 +63,7 @@ main_container = html.Div(
                                 html.Span(
                                     [
                                         dbc.Label(className="fa fa-moon", html_for="color-mode-switch", color='primary'),
-                                        dbc.Switch( id="color-mode-switch", value=True, className="d-inline-block ms-1", persistence=True),
+                                        dbc.Switch(id="color-mode-switch", value=True, className="d-inline-block ms-1", persistence=True),
                                         dbc.Label(className="fa fa-sun", html_for="color-mode-switch", color='primary'), 
                                     ]
                                 )
@@ -146,7 +146,7 @@ def toggle_offcanvas(n1, is_open):
     return is_open
 
 
-dev = True
+dev = False
 if __name__ == "__main__":
     if dev: 
         app.run_server(debug=True, host="0.0.0.0", port=82)

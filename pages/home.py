@@ -24,7 +24,7 @@ def layout():
                                     [
                                         html.H4("По времени", className="card-title"),
                                         html.P(
-                                            "Описание расчетов. ",
+                                            "Учет временных этапов производства и транспортировки товаров",
                                             className="card-text",
                                         ),
                                         dmc.Space(h=10),
@@ -42,7 +42,7 @@ def layout():
                                     [
                                         html.H4("По цене", className="card-title"),
                                         html.P(
-                                            "Описание расчетов. ",
+                                            "Учет стоимостей перевозки, хранения и обработки товаров на складах",
                                             className="card-text",
                                         ),
                                         dmc.Space(h=10),
